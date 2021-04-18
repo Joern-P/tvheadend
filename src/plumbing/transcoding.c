@@ -1121,9 +1121,9 @@ create_video_filter(video_stream_t *vs, transcoder_t *t,
   flt_inputs->pad_idx = 0;
   flt_inputs->next = NULL;
 
-  /* add filters: yadif to deinterlace and a scaler */
+  /* add filters: bwdif to deinterlace and hqdn3d denoise and a scaler */
   memset(opt, 0, sizeof(opt));
-  snprintf(opt, sizeof(opt), "yadif,scale=%dx%d",
+  snprintf(opt, sizeof(opt), "bwdif=0:-1:0,hqdn3d,scale=%dx%d:flags=fast_bilinear",
            octx->width,
            octx->height);
   err = avfilter_graph_parse_ptr(vs->flt_graph,
@@ -1346,9 +1346,11 @@ transcoder_stream_video(transcoder_t *t, transcoder_stream_t *ts, th_pkt_t *pkt)
       // select preset according to system performance and codec type
       av_dict_set(&opts, "preset",  t->t_props.tp_vcodec_preset, 0);
       tvhinfo(LS_TRANSCODE, "%04X: Using preset %s", shortid(t), t->t_props.tp_vcodec_preset);
-
       // All modern devices should support "high" profile
-      //av_dict_set(&opts, "profile", "high", 0);
+      av_dict_set(&opts, "profile", "high", 0);
+		//av_dict_set(&opts, "stride_out", 1, 0);
+		//av_dict_set(&opts, "zerocopy", 1, 0);
+		//av_dict_set(&opts, "profile_high_extra", 1, 0);
 
       if (t->t_props.tp_vbitrate < 64) {
         // encode with specified quality and optimize for low latency
@@ -1361,8 +1363,6 @@ transcoder_stream_video(transcoder_t *t, transcoder_stream_t *ts, th_pkt_t *pkt)
         octx->bit_rate        = t->t_props.tp_vbitrate * 1000;
         octx->rc_max_rate     = ceil(octx->bit_rate * 1.25);
         octx->rc_buffer_size  = octx->rc_max_rate * 3;
-        // force-cfr=1 is needed for correct bitrate calculation (tune "zerolatency" also sets this)
-        av_dict_set(&opts,      "x264opts", "force-cfr=1", 0);
         // use gop size of 5 seconds
         octx->gop_size       *= 5;
       }
