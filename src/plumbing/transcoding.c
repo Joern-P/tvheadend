@@ -1123,7 +1123,7 @@ create_video_filter(video_stream_t *vs, transcoder_t *t,
 
   /* add filters: bwdif to deinterlace and hqdn3d denoise and a scaler */
   memset(opt, 0, sizeof(opt));
-  snprintf(opt, sizeof(opt), "bwdif=0:-1:0,hqdn3d,scale=%dx%d:flags=fast_bilinear",
+  snprintf(opt, sizeof(opt), "bwdif=0:-1:0,hqdn3d=1.5:1.5:6:6,scale=%dx%d:flags=fast_bilinear",
            octx->width,
            octx->height);
   err = avfilter_graph_parse_ptr(vs->flt_graph,
@@ -1362,7 +1362,7 @@ transcoder_stream_video(transcoder_t *t, transcoder_stream_t *ts, th_pkt_t *pkt)
         // encode with specified bitrate and optimize for high compression
         octx->bit_rate        = t->t_props.tp_vbitrate * 1000;
         octx->rc_max_rate     = ceil(octx->bit_rate * 1.25);
-        octx->rc_buffer_size  = octx->rc_max_rate * 3;
+        octx->rc_buffer_size  = octx->rc_max_rate * 4;
         // use gop size of 5 seconds
         octx->gop_size       *= 5;
       }
