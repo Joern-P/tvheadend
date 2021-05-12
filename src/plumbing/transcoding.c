@@ -1363,8 +1363,8 @@ transcoder_stream_video(transcoder_t *t, transcoder_stream_t *ts, th_pkt_t *pkt)
         octx->bit_rate        = t->t_props.tp_vbitrate * 1000;
         octx->rc_max_rate     = ceil(octx->bit_rate * 1.25);
         octx->rc_buffer_size  = octx->rc_max_rate * 3;
-        // use gop size of 5 seconds
-        octx->gop_size       *= 3;
+        // use gop size of 4 seconds
+        octx->gop_size       *= 4;
       }
 
       break;
